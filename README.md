@@ -1,8 +1,8 @@
-# Offline AI Starter
+# Yearn
 
-An Android-first Expo chatbot with on-device Gemma 4 E2B, cloud Gemini, and
-local SQLite conversation storage. The Android app uses native modules, so run
-it in a development build; Expo Go is not supported.
+Yearn is an Android-first, offline-first chatbot with on-device Gemma 4 E2B,
+cloud Gemini, and local SQLite conversation storage. The Android app uses
+native modules, so run it in a development build; Expo Go is not supported.
 
 ## Documentation
 

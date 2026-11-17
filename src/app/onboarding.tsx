@@ -1,148 +1,203 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
+import { useRouter, type Href } from 'expo-router';
 import {
-  KeyboardAvoidingView,
+  ImageBackground,
+  Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button } from '@/components/Button';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { useSettings } from '@/settings/SettingsContext';
-import { useTheme } from '@/theme';
 
-type IconName = React.ComponentProps<typeof Ionicons>['name'];
-
-/** Intro slides. Edit, add or remove entries to change the onboarding. */
-const SLIDES: { icon: IconName; title: string; body: string }[] = [
-  {
-    icon: 'sparkles-outline',
-    title: 'Welcome',
-    body: 'A starter app with an AI assistant built in. Make it your own.',
-  },
-  {
-    icon: 'cloud-offline-outline',
-    title: 'Offline first',
-    body: 'Your chats are saved on this phone and work without internet.',
-  },
-  {
-    icon: 'hardware-chip-outline',
-    title: 'Cloud or on-device AI',
-    body: 'Use Gemini with a free API key, or download Gemma to run AI fully on your phone.',
-  },
-];
+const BACKGROUND_IMAGE = require('@/assets/images/yearn-welcome.jpg');
 
 export default function OnboardingScreen() {
-  const theme = useTheme();
-  const { settings, update } = useSettings();
-  const [step, setStep] = useState(0);
-  const [nickname, setNickname] = useState(settings.nickname);
+  const router = useRouter();
+  const { update } = useSettings();
+  const [isFocused, setIsFocused] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isNicknameStep = step === SLIDES.length;
-  const trimmed = nickname.trim();
-
-  const finish = () => {
-    update('nickname', trimmed);
-    // Flipping this flag makes the root layout switch to the main app.
-    update('onboarded', true);
+  const finish = async () => {
+    if (starting) return;
+    setStarting(true);
+    setError(null);
+    try {
+      await update('onboarded', true);
+      router.replace('/(tabs)' as Href);
+    } catch (finishError) {
+      console.warn('Unable to finish onboarding:', finishError);
+      setError(finishError instanceof Error ? finishError.message : 'Unable to continue to Home.');
+      setStarting(false);
+    }
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <KeyboardAvoidingView style={styles.flex} behavior="padding">
-        <View style={styles.content}>
-          {isNicknameStep ? (
-            <>
-              <Ionicons name="person-circle-outline" size={88} color={theme.tint} />
-              <Text style={[styles.title, { color: theme.text }]}>
-                What should we call you?
-              </Text>
-              <Text style={[styles.body, { color: theme.textSecondary }]}>
-                Pick a nickname. You can change it later in Settings.
-              </Text>
-              <TextInput
-                accessibilityLabel="Nickname"
-                value={nickname}
-                onChangeText={setNickname}
-                placeholder="Your nickname"
-                placeholderTextColor={theme.textSecondary}
-                autoFocus
-                maxLength={30}
-                returnKeyType="done"
-                onSubmitEditing={() => trimmed && finish()}
-                style={[
-                  styles.input,
-                  {
-                    color: theme.text,
-                    backgroundColor: theme.inputBackground,
-                    borderColor: theme.border,
-                  },
-                ]}
-              />
-            </>
-          ) : (
-            <>
-              <Ionicons name={SLIDES[step].icon} size={88} color={theme.tint} />
-              <Text style={[styles.title, { color: theme.text }]}>
-                {SLIDES[step].title}
-              </Text>
-              <Text style={[styles.body, { color: theme.textSecondary }]}>
-                {SLIDES[step].body}
-              </Text>
-            </>
-          )}
-        </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.desktopShell}>
+        <ImageBackground
+          source={BACKGROUND_IMAGE}
+          style={styles.background}
+          resizeMode="cover"
+        >
+          <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
+            <Defs>
+              <LinearGradient id="welcomeTint" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor="rgba(41, 163, 168, 0.28)" />
+                <Stop offset="0.46" stopColor="rgba(24, 93, 95, 0.14)" />
+                <Stop offset="1" stopColor="rgba(5, 39, 31, 0.67)" />
+              </LinearGradient>
+            </Defs>
+            <Rect x="0" y="0" width="100%" height="100%" fill="url(#welcomeTint)" />
+          </Svg>
 
-        <View style={styles.dots}>
-          {[...SLIDES, null].map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                { backgroundColor: i === step ? theme.tint : theme.border },
+          <View style={styles.content}>
+            <View style={styles.rule} />
+
+            <Text style={styles.kicker}>WELCOME TO</Text>
+
+            <Text style={styles.title}>YEARN</Text>
+
+            <View style={[styles.rule, styles.ruleBelow]} />
+
+            <Text style={styles.tagline}>
+              {'A private place to remember,'}
+              {'\n'}
+              {'feel, and heal.'}
+            </Text>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Get started"
+              disabled={starting}
+              focusable
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              onPress={() => void finish()}
+              style={({ pressed }) => [
+                styles.button,
+                {
+                  opacity: starting ? 0.65 : pressed ? 0.88 : 1,
+                  borderWidth: isFocused ? 2 : 0,
+                  borderColor: 'rgba(242, 223, 165, 0.95)',
+                },
               ]}
-            />
-          ))}
-        </View>
-
-        <View style={styles.footer}>
-          <Button label={step > 0 ? 'Back' : 'Skip'} variant="secondary" onPress={() => setStep(step > 0 ? step - 1 : SLIDES.length)} />
-          <Button label={isNicknameStep ? 'Get started' : 'Next'} disabled={isNicknameStep && !trimmed} onPress={() => isNicknameStep ? finish() : setStep(step + 1)} />
-        </View>
-      </KeyboardAvoidingView>
+            >
+              <Text style={styles.buttonText}>{starting ? 'Loading…' : 'Get Started'}</Text>
+            </Pressable>
+            {error && <Text accessibilityLiveRegion="polite" style={styles.error}>{error}</Text>}
+          </View>
+        </ImageBackground>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  flex: { flex: 1 },
-  content: {
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#171C1B',
+  },
+  desktopShell: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 32,
-    gap: 16,
+    backgroundColor: '#171C1B',
   },
-  title: { fontSize: 26, fontWeight: '700', textAlign: 'center' },
-  body: { fontSize: 16, textAlign: 'center', lineHeight: 22 },
-  input: {
-    alignSelf: 'stretch',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 17,
-    marginTop: 8,
+  background: {
+    width: '100%',
+    height: '100%',
+    maxWidth: 430,
+    minHeight: 620,
+    overflow: 'hidden',
   },
-  dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 16 },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  content: {
+    position: 'absolute',
+    inset: 0,
+  },
+  rule: {
+    position: 'absolute',
+    left: '50%',
+    top: '12%',
+    width: 124,
+    height: 1,
+    backgroundColor: 'rgba(242, 223, 165, 0.8)',
+    transform: [{ translateX: -62 }],
+  },
+  ruleBelow: {
+    top: '30%',
+  },
+  kicker: {
+    position: 'absolute',
+    top: '15%',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: '#F2DFA5',
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 4,
+    lineHeight: 16,
+    textTransform: 'uppercase',
+  },
+  title: {
+    position: 'absolute',
+    top: '22%',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: '#FFFFFF',
+    fontSize: 54,
+    fontWeight: '700',
+    letterSpacing: 12,
+    fontFamily: 'Georgia',
+    lineHeight: 60,
+    includeFontPadding: false,
+  },
+  tagline: {
+    position: 'absolute',
+    top: '57%',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: '#F2DFA5',
+    fontSize: 18,
+    fontStyle: 'italic',
+    fontFamily: 'Georgia',
+    lineHeight: 27,
+  },
+  button: {
+    position: 'absolute',
+    left: '9%',
+    right: '9%',
+    bottom: '7%',
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#BF8775',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 20,
+    letterSpacing: 0.5,
+  },
+  error: {
+    position: 'absolute',
+    bottom: '2%',
+    left: '9%',
+    right: '9%',
+    color: '#FFFFFF',
+    fontSize: 12,
+    textAlign: 'center',
   },
 });

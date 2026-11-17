@@ -1,12 +1,11 @@
-# Student Guide: Offline AI Starter
+# Yearn Setup Guide
 
-This guide covers everything to do **before** you build your own project on
-this boilerplate: what you need, how to set up your computer, how to run the
-app, and what to change to make it yours.
+This guide covers what you need to set up your computer, build and run Yearn,
+and customize the app.
 
 Read it from top to bottom the first time. Skip to
-[Checklist](#10-checklist-before-you-start-your-project) when you start your
-next project.
+[Yearn setup checklist](#10-yearn-setup-checklist) when setting up a new
+development environment.
 
 ---
 
@@ -197,17 +196,11 @@ eas whoami       # should print your username
 
 ## 4. Get the code
 
-Copy the boilerplate into a **new folder for each project**. Don't work
-inside the original.
+Clone the Yearn repository into a **new folder**.
 
 ```bash
-# from a Git repository
-git clone <boilerplate-repo-url> my-project
-cd my-project
-rm -rf .git          # Windows PowerShell: Remove-Item -Recurse -Force .git
-git init
-
-# or: copy the folder, then delete node_modules/ and android/ in the copy
+git clone <yearn-repository-url> yearn
+cd yearn
 ```
 
 Install packages:
@@ -227,18 +220,18 @@ SKIP_IOS_FRAMEWORK_DOWNLOAD=1 npm install
 
 ---
 
-## 5. Make it your project (rename)
+## 5. Yearn app identity
 
-Do this **before `eas init` and your first build**. Changing the package
-name later means a new app on the phone.
+Yearn's app identity is configured before the first build. Changing the
+Android package name later means a separate app installation on the phone.
 
-| What | File | Change |
+| What | File | Current value |
 | --- | --- | --- |
-| App name on the phone | `app.json` > `expo.name` | `"Offline AI Starter"` → `"My Study Buddy"` |
-| Slug | `app.json` > `expo.slug` | `"my-study-buddy"` (lowercase, dashes) |
-| URL scheme | `app.json` > `expo.scheme` | `"my-study-buddy"` |
-| **Android package ID** | `app.json` > `expo.android.package` | `"com.yourname.mystudybuddy"` (must be unique, lowercase, no dashes) |
-| npm name | `package.json` > `name` | `"my-study-buddy"` |
+| App name on the phone | `app.json` > `expo.name` | `Yearn` |
+| Slug | `app.json` > `expo.slug` | `yearn` |
+| URL scheme | `app.json` > `expo.scheme` | `yearn` |
+| **Android package ID** | `app.json` > `expo.android.package` | `com.yearn.app` |
+| npm name | `package.json` > `name` | `yearn` |
 | App icon/splash | `assets/images/` | Replace `icon.png`, `android-icon-*.png`, `splash-icon.png` (keep sizes) |
 | Colours | `src/theme.ts` | Change `tint` and the other colours for light/dark |
 | Title in README | `../README.md` | Your project name and description |
@@ -493,14 +486,14 @@ cloud routing, and native hardware notes.
 
 ---
 
-## 10. Checklist before you start your project
+## 10. Yearn setup checklist
 
 - [ ] Node.js 20.19+ installed (`node -v`)
 - [ ] Git installed
-- [ ] Copied the boilerplate into a **new folder** and ran `git init`
+- [ ] Cloned the Yearn repository into a **new folder**
 - [ ] `npm install` finished without errors
-- [ ] Renamed `name`, `slug`, `scheme` and **`android.package`** in `app.json`
-- [ ] Renamed `name` in `package.json`
+- [ ] Confirmed the Yearn app name, slug, scheme and **`android.package`** in `app.json`
+- [ ] Confirmed the `yearn` package name in `package.json`
 - [ ] Replaced icons/splash in `assets/images/` (optional but recommended)
 - [ ] Updated the root [README](../README.md) and `LICENSE`
 - [ ] App runs in the browser: `npx expo start --web`
@@ -512,7 +505,7 @@ cloud routing, and native hardware notes.
 - [ ] (Android) `npx expo start` running and the phone app connects
 - [ ] (Local AI) Model downloaded and loaded on a real phone
 - [ ] Checked no API key is written anywhere in the code
-- [ ] First commit: `git add . && git commit -m "Start from Offline AI Starter"`
+- [ ] First commit: `git add . && git commit -m "Set up Yearn"`
 
 ---
 

@@ -9,7 +9,7 @@ import { DownloadStatusIndicator } from '@/components/DownloadStatusIndicator';
 import { PopupProvider } from '@/components/Popup';
 import { AccessibilityPreferences, useReduceMotion } from '@/components/AccessibilityPreferences';
 import { SettingsProvider, useSettings } from '@/settings/SettingsContext';
-import { useTheme } from '@/theme';
+import { useIsDarkTheme, useTheme } from '@/theme';
 
 export default function RootLayout() {
   const theme = useTheme();
@@ -41,6 +41,7 @@ export default function RootLayout() {
 /** Shows onboarding until it's completed, then the main app. */
 function RootNavigator() {
   const theme = useTheme();
+  const isDark = useIsDarkTheme();
   const { settings, ready } = useSettings();
   const reduceMotion = useReduceMotion();
 
@@ -59,7 +60,7 @@ function RootNavigator() {
 
   return (
     <>
-      <StatusBar style={settings.theme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: theme.card },
@@ -73,6 +74,7 @@ function RootNavigator() {
         </Stack.Protected>
         <Stack.Protected guard={settings.onboarded}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="healing-garden" options={{ headerShown: false }} />
           <Stack.Screen name="settings" options={{ title: 'Settings' }} />
           <Stack.Screen name="chat-settings" options={{ title: 'Chat settings' }} />
           <Stack.Screen name="privacy" options={{ title: 'Privacy Policy' }} />

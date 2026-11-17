@@ -6,7 +6,7 @@ import { deleteAllAttachments } from '@/attachments/files';
 import { getDb } from '@/db/client';
 import type { Conversation } from '@/db/conversations';
 import type { MessageRow } from '@/db/messages';
-import { DEFAULT_SETTINGS, type Settings } from '@/settings/storage';
+import { DEFAULT_SETTINGS, isLocalDate, type Settings } from '@/settings/storage';
 import { readFile, saveFile } from './file';
 
 export const BACKUP_FORMAT = 'offline-ai-starter-backup';
@@ -15,7 +15,7 @@ export const BACKUP_VERSION = 1;
 /** Settings saved in a backup. The API key is never included. */
 type BackupSettings = Pick<
   Settings,
-  'provider' | 'geminiModel' | 'localBackend' | 'systemPrompt' | 'nickname' | 'theme'
+  'provider' | 'geminiModel' | 'localBackend' | 'systemPrompt' | 'nickname' | 'healingStartDate' | 'theme'
 >;
 
 export interface BackupFile {
@@ -36,13 +36,13 @@ export async function exportBackup(settings: Settings): Promise<number> {
     'SELECT * FROM messages ORDER BY created_at'
   );
   const {
-    provider, geminiModel, localBackend, systemPrompt, nickname, theme,
+    provider, geminiModel, localBackend, systemPrompt, nickname, healingStartDate, theme,
   } = settings;
   const backup: BackupFile = {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
     createdAt: Date.now(),
-    settings: { provider, geminiModel, localBackend, systemPrompt, nickname, theme },
+    settings: { provider, geminiModel, localBackend, systemPrompt, nickname, healingStartDate, theme },
     conversations,
     messages,
   };
@@ -156,5 +156,8 @@ export async function restoreBackup(
   }
   if (is('systemPrompt', () => true)) update('systemPrompt', s.systemPrompt);
   if (is('nickname', () => true)) update('nickname', s.nickname);
-  if (is('theme', (v) => v === 'light' || v === 'dark')) update('theme', s.theme);
+  if (is('healingStartDate', (v) => v === '' || isLocalDate(v))) {
+    update('healingStartDate', s.healingStartDate);
+  }
+  if (is('theme', (v) => v === 'light' || v === 'dark' || v === 'system')) update('theme', s.theme);
 }

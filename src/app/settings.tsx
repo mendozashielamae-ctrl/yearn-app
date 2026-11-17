@@ -2,29 +2,22 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { useRouter, type Href } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { deleteModel } from '@/ai/local';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { exportBackup, pickBackup, restoreBackup } from '@/backup/backup';
 import { Button } from '@/components/Button';
 import { Section } from '@/components/Section';
 import { SmoothPressable } from '@/components/SmoothPressable';
-import { clearAllConversations } from '@/db/conversations';
 import { useSettings } from '@/settings/SettingsContext';
-import type { ThemeMode } from '@/settings/storage';
+import { useAiStatus } from '@/hooks/useAiStatus';
 import { useTheme, type Theme } from '@/theme';
 import { confirmAction } from '@/utils/confirm';
 
-const THEME_OPTIONS: { id: ThemeMode; label: string; icon: 'sunny-outline' | 'moon-outline' }[] = [
-  { id: 'light', label: 'Light', icon: 'sunny-outline' },
-  { id: 'dark', label: 'Dark', icon: 'moon-outline' },
-];
-
-/** App-wide (system) settings. Chatbot options live in chat-settings.tsx. */
+/** AI status, configuration, backup, and app information. Profile options live on Me. */
 export default function SettingsScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { settings, update, reset } = useSettings();
-  const [nicknameDraft, setNicknameDraft] = useState(settings.nickname);
+  const { settings, update } = useSettings();
+  const { problem, isOnline } = useAiStatus();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ text: string; error: boolean } | null>(null);
 
@@ -64,7 +57,6 @@ export default function SettingsScreen() {
             setBusy(true);
             try {
               await restoreBackup(b, update);
-              setNicknameDraft(b.settings.nickname ?? '');
               setStatus({ text: 'Backup restored.', error: false });
             } catch (e) {
               setStatus({
@@ -85,90 +77,39 @@ export default function SettingsScreen() {
     }
   };
 
-  const resetAllData = () =>
-    confirmAction(
-      'Reset all data?',
-      'This deletes your chat, nickname, settings, API key and the downloaded local model. The app will start again from onboarding.',
-      'Reset',
-      async () => {
-        await clearAllConversations();
-        await deleteModel();
-        // Settings go back to defaults (onboarded = false), so the root
-        // layout switches to the onboarding screen.
-        await reset();
-      }
-    );
-
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.background }}
       contentContainerStyle={styles.scroll}
       keyboardShouldPersistTaps="handled"
     >
-      <Section title="Profile" theme={theme}>
-        <Text style={[styles.label, { color: theme.text }]}>Nickname</Text>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: theme.inputBackground,
-              borderColor: theme.border,
-              color: theme.text,
-            },
-          ]}
-          accessibilityLabel="Nickname"
-          value={nicknameDraft}
-          onChangeText={setNicknameDraft}
-          onBlur={() => update('nickname', nicknameDraft.trim())}
-          maxLength={30}
-          placeholder="Your nickname"
-          placeholderTextColor={theme.textSecondary}
-        />
-      </Section>
-
-      <Section title="Appearance" theme={theme}>
-        <View
-          style={styles.segmented}
-        >
-          {THEME_OPTIONS.map((o) => {
-            const active = settings.theme === o.id;
-            return (
-              <SmoothPressable
-                key={o.id}
-                accessibilityRole="radio"
-                accessibilityLabel={`${o.label} appearance`}
-                accessibilityState={{ checked: active }}
-                onPress={() => update('theme', o.id)}
-                style={[
-                  styles.segment,
-                  {
-                    backgroundColor: active ? theme.buttonPrimary : theme.buttonSecondary,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={o.icon}
-                  size={16}
-                  color={active ? '#FFFFFF' : theme.textSecondary}
-                />
-                <Text
-                  style={{
-                    color: active ? '#FFFFFF' : theme.textSecondary,
-                    fontWeight: active ? '700' : '400',
-                  }}
-                >
-                  {o.label}
-                </Text>
-              </SmoothPressable>
-            );
-          })}
+      <Section title="AI connection" theme={theme}>
+        <View style={styles.connectionRow}>
+          <Ionicons
+            name={problem ? 'alert-circle-outline' : 'checkmark-circle-outline'}
+            size={22}
+            color={problem ? theme.danger : theme.success}
+          />
+          <View style={styles.connectionCopy}>
+            <Text style={{ color: theme.text, fontSize: 15, fontWeight: '600' }}>
+              {settings.provider === 'cloud' ? 'Cloud AI (Gemini)' : 'Local AI'}
+            </Text>
+            <Text style={{ color: theme.textSecondary, fontSize: 13, marginTop: 3 }}>
+              {problem ?? `Ready to chat · ${isOnline ? 'Online' : 'Offline'}`}
+            </Text>
+          </View>
         </View>
+        <LinkRow
+          label="AI configuration"
+          onPress={() => router.push('/chat-settings' as Href)}
+          theme={theme}
+        />
       </Section>
 
       <Section title="Data" theme={theme}>
         <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
-          Save your chat and settings to a file, or restore them later. Your
-          Gemini API key and the downloaded local model are not included.
+          Backups include chat history and selected settings. Photos, imported audio, letters,
+          your profile photo, Gemini API key, and downloaded local model are not included.
         </Text>
         <Button label="Back up data" icon="cloud-upload-outline" onPress={backup} disabled={busy} style={{ marginTop: 12 }} />
         <Button label="Restore from backup" icon="cloud-download-outline" variant="secondary" onPress={restore} disabled={busy} style={{ marginTop: 10 }} />
@@ -200,7 +141,6 @@ export default function SettingsScreen() {
         />
       </Section>
 
-      <Button label="Reset all data" icon="trash-outline" variant="destructiveSecondary" onPress={resetAllData} style={{ marginTop: 10 }} />
     </ScrollView>
   );
 }
@@ -234,28 +174,8 @@ function LinkRow({
 
 const styles = StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 48 },
-  label: { fontSize: 15, fontWeight: '600', marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-  },
-  segmented: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  segment: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderRadius: 12,
-    minHeight: 48,
-    paddingVertical: 8,
-  },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
+  connectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
+  connectionCopy: { flex: 1 },
   linkRow: { minHeight: 48, alignItems: 'center', marginTop: 5, borderRadius: 9, paddingHorizontal: 10, paddingVertical: 10 },
 });

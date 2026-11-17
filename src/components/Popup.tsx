@@ -1,8 +1,7 @@
 import { BlurTargetView, BlurView } from 'expo-blur';
 import React, { createContext, useContext, useRef, useSyncExternalStore, type RefObject } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { useSettings } from '@/settings/SettingsContext';
-import { useTheme } from '@/theme';
+import { useIsDarkTheme, useTheme } from '@/theme';
 import { dismissConfirmation, getConfirmation, showMessage, subscribeConfirmation } from '@/utils/confirm';
 import { useReduceMotion } from './AccessibilityPreferences';
 import { Button } from './Button';
@@ -29,12 +28,12 @@ export function Popup({ visible, onClose, children, style, label }: {
 }) {
   const target = useContext(BlurTargetContext);
   const theme = useTheme();
-  const { settings } = useSettings();
+  const isDark = useIsDarkTheme();
   const reduceMotion = useReduceMotion();
   return (
     <Modal visible={visible} transparent statusBarTranslucent navigationBarTranslucent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <BlurView pointerEvents="none" accessible={false} importantForAccessibility="no-hide-descendants" blurTarget={target} blurMethod="dimezisBlurView" intensity={65} tint={settings.theme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+        <BlurView pointerEvents="none" accessible={false} importantForAccessibility="no-hide-descendants" blurTarget={target} blurMethod="dimezisBlurView" intensity={65} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
         <Pressable accessibilityRole="button" accessibilityLabel={`Dismiss ${label}`} onPress={onClose} style={[StyleSheet.absoluteFill, styles.scrim]} />
         <View accessibilityViewIsModal accessibilityLabel={label} style={[styles.sheet, { backgroundColor: theme.card }, style]}>{children}</View>
       </View>

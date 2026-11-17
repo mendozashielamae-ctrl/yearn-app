@@ -1,7 +1,6 @@
 # Project documentation
 
-Use this page to find setup steps and technical references for Offline AI
-Starter.
+Use this page to find setup steps and technical references for Yearn.
 
 ## Start here
 

@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "Offline AI Starter",
-    "slug": "offline-ai-starter",
+    "name": "YEARNHUB",
+    "slug": "yearn",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "offline-ai-starter",
+    "scheme": "yearn",
     "userInterfaceStyle": "automatic",
     "platforms": [
       "android",
       "web"
     ],
     "android": {
-      "package": "com.example.offlineaistarter",
+      "package": "com.yearn.app",
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",

@@ -1,4 +1,4 @@
-# Offline AI Starter
+# Yearn
 
 A small, readable Android chatbot app you can build on. It is
 **offline-first**: every conversation lives in a local SQLite database, so
@@ -184,7 +184,7 @@ calls `opts.onToken` for each streamed chunk.
 ### Changing the package name
 
 Edit `android.package` in `app.json` (currently
-`com.example.offlineaistarter`), then run `npx expo prebuild --clean` or
+`com.yearn.app`), then run `npx expo prebuild --clean` or
 `npx expo run:android` again to regenerate the native project. The
 `android/` directory is generated — do not edit it by hand.
 

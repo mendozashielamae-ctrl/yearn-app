@@ -1,3 +1,4 @@
+import { useColorScheme } from 'react-native';
 import { useSettings } from '@/settings/SettingsContext';
 
 export interface Theme {
@@ -20,43 +21,49 @@ export interface Theme {
 }
 
 const light: Theme = {
-  background: '#FFFFFF',
-  card: '#F2F2F7',
-  text: '#111111',
-  textSecondary: '#6B6B70',
-  border: '#D8D8DE',
-  tint: '#0066CC',
-  buttonPrimary: '#0066CC',
-  buttonSecondary: '#E6E8EE',
+  background: '#F7F3E9',
+  card: '#FBF8F1',
+  text: '#483B37',
+  textSecondary: '#9F8D83',
+  border: '#E8DED4',
+  tint: '#BF8775',
+  buttonPrimary: '#BF8775',
+  buttonSecondary: '#F0EAE0',
   buttonDanger: '#BA2525',
   danger: '#B42323',
   success: '#2E7D32',
   warning: '#A14800',
-  userBubble: '#0066CC',
+  userBubble: '#BF8775',
   userBubbleText: '#FFFFFF',
-  assistantBubble: '#E9E9EE',
-  inputBackground: '#F2F2F7',
+  assistantBubble: '#EEE9E1',
+  inputBackground: '#F0EAE0',
 };
 
 const dark: Theme = {
-  background: '#0E0E12',
-  card: '#1C1C22',
-  text: '#F2F2F5',
-  textSecondary: '#9A9AA3',
-  border: '#2E2E38',
-  tint: '#70B7FF',
-  buttonPrimary: '#0A65C7',
-  buttonSecondary: '#303038',
+  background: '#252421',
+  card: '#302E2A',
+  text: '#F1E9DF',
+  textSecondary: '#B9A99D',
+  border: '#514A43',
+  tint: '#D39986',
+  buttonPrimary: '#BF8775',
+  buttonSecondary: '#3D3934',
   buttonDanger: '#BA2525',
   danger: '#FF8885',
   success: '#66BB6A',
   warning: '#FFA726',
-  userBubble: '#1C6FD1',
+  userBubble: '#835A4D',
   userBubbleText: '#FFFFFF',
-  assistantBubble: '#23232C',
-  inputBackground: '#1C1C22',
+  assistantBubble: '#3D3934',
+  inputBackground: '#3D3934',
 };
 
 export function useTheme(): Theme {
-  return useSettings().settings.theme === 'dark' ? dark : light;
+  return useIsDarkTheme() ? dark : light;
+}
+
+export function useIsDarkTheme(): boolean {
+  const preference = useSettings().settings.theme;
+  const systemScheme = useColorScheme();
+  return preference === 'dark' || (preference === 'system' && systemScheme === 'dark');
 }
